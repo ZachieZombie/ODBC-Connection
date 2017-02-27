@@ -10,5 +10,4 @@
 #include <sql.h>
 #include <sqlext.h>
 #include <string>
-
 #include "odbcinst.h"

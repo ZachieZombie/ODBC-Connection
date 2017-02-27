@@ -72,11 +72,11 @@ class ODBCRecordset
         bool isEoF();
         bool isBoF();
         void close();
+        SQLHSTMT mHstmt;
     protected:
         bool mIsEOF;
         bool mIsBOF;
         SQLHDBC mHdbc;
-        SQLHSTMT mHstmt;
         SQLRETURN retCode;
         void allocStatement();
 };

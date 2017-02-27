@@ -4,18 +4,22 @@
 
 ODBCParameter::ODBCParameter()
 {
-    initialize();
+    mParamType   = NULL;
+    mAppDataType = NULL;
+    mSqlDataType = NULL;
+    mDataAddress = NULL;
+    mDataLen     = NULL;
 }
 
 
 
-ODBCParameter::ODBCParameter(ODBCColumnType pType, unsigned int pWidth, 
-                             std::string pParamType)
+void ODBCParameter::initialize(SQLPOINTER pData, const int pSize, std::string pParamType, ODBCColumnType pODBCDataType)
 {
-    initialize();
-    setType(pType);
-    setWidth(pWidth);
+    setDataLength(pSize);
+    setDataAddress(pData);
     setParamType(pParamType);
+    setSqlDataType(pODBCDataType);
+    setAppDataType(pODBCDataType);
 }
 
 
@@ -27,78 +31,68 @@ ODBCParameter::~ODBCParameter()
 
 
 
-
-void ODBCParameter::initialize()
+void ODBCParameter::setParamType(std::string pParamType)
 {
-    mParamType = DBC_STRING;
-    mDigits = 4;
-    mIndicator = SQL_NTS;
-    mWidth = 0;
-    mBinds = 0;
-    memset(&mData, 0, sizeof(mData));
-}
-
-
-
-
-void ODBCParameter::setType(const ODBCColumnType type)
-{
-    mType = type;
-}
-
-
-
-
-void ODBCParameter::setParamType(const std::string paramType)
-{
-    mParamType = paramType;
-}
-
-
-
-
-void ODBCParameter::setWidth(const unsigned int width)
-{
-    mWidth = width;
-}
-
-
-
-void ODBCParameter::setNull(const bool pSetNull)
-{
-    if (pSetNull)
+    if (pParamType == "Input")
     {
-        mIndicator = SQL_NULL_DATA;
-
-        switch (mType)
-        {
-            /*case DBC_DOUBLE:
-                mData = 0.0;
-                break;
-            case DBC_INTEGER:
-                mData = 0;
-                break;*/
-            case DBC_DATE:
-            case DBC_DATETIME:
-            case DBC_STRING:
-            case DBC_BINARY:
-                mData[0] = '\0';
-                break;
-            default:
-                memset(mData, 0, sizeof(mData));
-                break;
-        }
+        mParamType = SQL_PARAM_INPUT;
     }
-
+    else if (pParamType == "Output")
+    {
+        mParamType = SQL_PARAM_OUTPUT;
+    }
+    else if (pParamType == "Input/Output")
+    {
+        mParamType = SQL_PARAM_INPUT_OUTPUT;
+    }
     else
+        mParamType = SQL_PARAM_ERROR;
+}
+
+
+
+void ODBCParameter::setAppDataType(ODBCColumnType pDataType)
+{
+    switch (pDataType)
     {
-        mIndicator = SQL_NTS;
+        case DBC_STRING:
+            mAppDataType = SQL_C_CHAR;
+            break;
+        case DBC_DEFAULT:
+            mAppDataType = SQL_DEFAULT;
+            break;
+        default:
+            mAppDataType = SQL_DEFAULT;
     }
 }
 
 
 
-void ODBCParameter::unbind()
+void ODBCParameter::setSqlDataType(ODBCColumnType pDataType)
 {
-    mBinds--;
+    switch (pDataType)
+    {
+    case DBC_STRING:
+        mSqlDataType = SQL_VARCHAR;
+        break;
+    case DBC_DEFAULT:
+        mSqlDataType = SQL_DEFAULT;
+        break;
+    default:
+        mSqlDataType = SQL_VARCHAR;
+    }
+}
+
+
+
+void ODBCParameter::setDataAddress(SQLPOINTER pData)
+{
+    mDataAddress = pData;
+}
+
+
+
+void ODBCParameter::setDataLength(const int pSize)
+{
+    mDataLen = pSize;
 }
