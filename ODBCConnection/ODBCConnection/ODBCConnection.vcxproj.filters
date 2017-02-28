@@ -24,13 +24,13 @@
     <ClInclude Include="ODBCConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StoredProcedure.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ODBCRecordset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ODBCParameter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ODBCStoredProc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,13 +44,13 @@
     <ClCompile Include="ODBCConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StoredProcedure.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ODBCRecordset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ODBCParameter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ODBCStoredProc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

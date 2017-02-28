@@ -82,19 +82,19 @@
     <ClInclude Include="ODBCConnection.h" />
     <ClInclude Include="ODBCParameter.h" />
     <ClInclude Include="ODBCRecordset.h" />
+    <ClInclude Include="ODBCStoredProc.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StoredProcedure.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ODBCConnection.cpp" />
     <ClCompile Include="ODBCParameter.cpp" />
     <ClCompile Include="ODBCRecordset.cpp" />
+    <ClCompile Include="ODBCStoredProc.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="StoredProcedure.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

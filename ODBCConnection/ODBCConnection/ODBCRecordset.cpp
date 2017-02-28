@@ -2,6 +2,14 @@
 #include "ODBCRecordset.h"
 
 
+ODBCRecordset::ODBCRecordset()
+{
+    mHdbc  = NULL;
+    mHstmt = NULL;
+    mIsEOF = FALSE;
+    mIsBOF = FALSE;
+}
+
 ODBCRecordset::ODBCRecordset(ODBCConnection* pDb)
 {
     mHdbc  = pDb->mHdbc;

@@ -46,6 +46,7 @@ class ODBCRecordset
             typeGUID = SQL_GUID
         };
 
+        ODBCRecordset();
         ODBCRecordset(ODBCConnection* pdb);
         ~ODBCRecordset();
         bool open(char* ptrSqlStr);

@@ -113,3 +113,37 @@ void ODBCConnection::close()
     SQLDisconnect(mHdbc);
     freeSQL();
 }
+
+
+
+std::string ODBCConnection::retrieveError(std::string fn)
+{
+    SQLINTEGER i = 0;
+    SQLINTEGER native;
+    SQLCHAR state[7];
+    SQLCHAR text[256];
+    SQLSMALLINT length;
+    SQLRETURN ret;
+    std::string error;
+
+    error = "The driver reported the following diagnostics while running(";
+    error += fn + "): ";
+
+    ret = SQL_SUCCESS;
+    while (ret == SQL_SUCCESS)
+    {
+        ret = SQLGetDiagRec(SQL_HANDLE_ENV, mHenv, ++i, 
+                            state, &native, text, sizeof(text), &length);
+        if (SQL_SUCCEEDED(ret))
+        {
+            std::string tempError;
+            std::string buffer;
+            buffer.assign((char*)state);
+            tempError += "Code " + buffer + " - #" + std::to_string(native) + "\n";
+            buffer.clear();
+            tempError.append((char*)text);
+            error += tempError;
+        }
+    }
+    return error;
+}

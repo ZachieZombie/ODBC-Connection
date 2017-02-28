@@ -27,6 +27,7 @@ public:
     long getConnectionTimeout();
     bool isConnected();
     void close();
+    std::string retrieveError(std::string fn);
 
 protected:
     SQLHENV mHenv;
