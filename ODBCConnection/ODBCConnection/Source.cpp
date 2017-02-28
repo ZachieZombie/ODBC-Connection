@@ -8,13 +8,23 @@
 
 int main(int argc, char* argv[])
 {
-    ODBCConnection con;
-    if (!con.open("DEVMASSETS", "", ""))
+    //ODBCConnection con;
+    //if (!con.open("DEVMASSETS", "", ""))
+    //{
+    //    con.close();
+    //    return -1;
+    //}
+
+    //ODBCStoredProc spa = ODBCStoredProc(&con);
+
+    ODBCStoredProc spa;
+    if (!spa.initialize("DEVMASSETS", "", ""))
     {
-        con.close();
+        std::string error = spa.getLastError();
         return -1;
     }
-    ODBCStoredProc spa = ODBCStoredProc(&con);
+    spa.setProcCall("{call [dw].[dataloads].[dbo].[ustp_EmailManagement] ('Admin: Machine Status', ?, ?)}");
+
     ODBCParameter ToList;
     ODBCParameter CCList;
     SQLCHAR ToBuffer[1000];
@@ -23,24 +33,26 @@ int main(int argc, char* argv[])
     CCList.initialize(&CCBuffer, sizeof(CCBuffer), "Output", DBC_STRING);
     spa.bindParameter(1, ToList);
     spa.bindParameter(2, CCList);
-    spa.run("{call [dw].[dataloads].[dbo].[ustp_EmailManagement] ('Admin: Machine Status', ?, ?)}");
-    spa.close();
+    spa.runProcedure();
 
-    ODBCStoredProc spb = ODBCStoredProc(&con);
+
+    //ODBCStoredProc spb = ODBCStoredProc(&con);
+
+    ODBCStoredProc spb;
+    if (!spb.initialize("DEVMASSETS", "", ""))
+    {
+        std::string error = spb.getLastError();
+        return -2;
+    }
     ODBCParameter equity;
     ODBCParameter id;
-    double e = 0;
-    SQLDOUBLE *eBuffer = (SQLDOUBLE*)&e;
+    SQLDOUBLE eBuffer = 0;
     int idBuffer = 57;
     equity.initialize(&eBuffer, sizeof(eBuffer), "Output", DBC_DOUBLE);
     id.initialize(&idBuffer, sizeof(idBuffer), "Input", DBC_INTEGER);
-    spb.bindParameter(2, equity);
     spb.bindParameter(1, id);
-    spb.run("{call [dbo].[ustp_ISEquityPercent] (?,?)}");
-
-    std::string error = spb.retrieveError("SPB RUN");
-
-    spb.close();
+    spb.bindParameter(2, equity);
+    spb.runProcedure("{call [massets].[dbo].[ustp_ISEquityPercent] (?,?)}");
 
     //ODBCRecordset records = ODBCRecordset(&con);
     //SQLCHAR ToList [1000];

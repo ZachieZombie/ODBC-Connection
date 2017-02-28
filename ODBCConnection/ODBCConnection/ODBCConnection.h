@@ -12,14 +12,14 @@ public:
     enum driverCompletion
     {
         sqlNoPrompt = SQL_DRIVER_NOPROMPT,
-        sqlPrompt = SQL_DRIVER_PROMPT
+        sqlPrompt   = SQL_DRIVER_PROMPT
     };
 
     ODBCConnection();
     ~ODBCConnection();
 
-    bool open(char* ptrDsnStr, char* ptrUserStr = NULL,
-        char* ptrStrPass = NULL);
+    bool open(const char* ptrDsnStr, const char* ptrUserStr = NULL,
+        const char* ptrStrPass = NULL);
     bool connectDriver(char* ptrConStr, char* ptrConStrOut = NULL,
         HWND hWnd = NULL, enum driverCompletion driverCon = sqlNoPrompt);
     void setConnectionTimeout(long nSeconds);
@@ -27,14 +27,16 @@ public:
     long getConnectionTimeout();
     bool isConnected();
     void close();
-    std::string retrieveError(std::string fn);
+    std::string getLastError(){ return mError; }
+    std::string retrieveError(std::string pFn, SQLSMALLINT pHandleType);
 
 protected:
-    SQLHENV mHenv;
-    SQLRETURN mRetCode;
-    long    mConnectionTimeout;
-    long    mLoginTimeout;
-    bool    mIsConnected;
+    SQLHENV     mHenv;
+    SQLRETURN   mRetCode;
+    long        mConnectionTimeout;
+    long        mLoginTimeout;
+    bool        mIsConnected;
+    std::string mError;
     void freeSQL();
     void allocSQL();
 };

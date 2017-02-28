@@ -18,10 +18,60 @@ ODBCStoredProc::ODBCStoredProc(ODBCConnection* pDb)
 }
 
 
+
 ODBCStoredProc::~ODBCStoredProc()
 {
+    mCon.close();
     close();
     mHstmt = NULL;
+}
+
+
+
+bool ODBCStoredProc::initialize(std::string pDSN, std::string pUser, std::string pPass)
+{
+    setDSN (pDSN);
+    setUser(pUser);
+    setPass(pPass);
+    connectODBC();
+
+    if (!mODBCConnected)
+    {
+        mError.clear();
+        mError = mCon.getLastError();
+        return false;
+    }
+    mHdbc = mCon.mHdbc;
+    allocStatement();
+    return true;
+}
+
+
+
+void ODBCStoredProc::setProcCall(std::string pCall)
+{
+    mProcCall = pCall;
+}
+
+
+
+void ODBCStoredProc::setDSN(std::string pDSN)
+{
+    mDSN = pDSN;
+}
+
+
+
+void ODBCStoredProc::setUser(std::string pUser)
+{
+    mUser = pUser;
+}
+
+
+
+void ODBCStoredProc::setPass(std::string pPass)
+{
+    mPass = pPass;
 }
 
 
@@ -33,19 +83,35 @@ void ODBCStoredProc::allocStatement()
 
 
 
-bool ODBCStoredProc::run(char* ptrSqlStr)
+bool ODBCStoredProc::runProcedure(std::string ptrSqlStr)
 {
-    retCode = SQLExecDirect(mHstmt, (SQLCHAR*)ptrSqlStr, SQL_NTS);
+    retCode = SQLExecDirect(mHstmt, (SQLCHAR*)ptrSqlStr.c_str(), SQL_NTS);
 
     if (!((retCode == SQL_SUCCESS) || (retCode == SQL_SUCCESS_WITH_INFO)))
     {
+        mError.clear();
+        mError = retrieveError("Run Procedure");
         return false;
     }
-
     SQLFetch(mHstmt);
     return true;
 }
 
+
+
+bool ODBCStoredProc::runProcedure()
+{
+    retCode = SQLExecDirect(mHstmt, (SQLCHAR*)mProcCall.c_str(), SQL_NTS);
+
+    if (!((retCode == SQL_SUCCESS) || (retCode == SQL_SUCCESS_WITH_INFO)))
+    {
+        mError.clear();
+        mError = retrieveError("Run Procedure");
+        return false;
+    }
+    SQLFetch(mHstmt);
+    return true;
+}
 
 
 void ODBCStoredProc::close()
@@ -81,6 +147,19 @@ bool ODBCStoredProc::bindParameter(unsigned int pIndex, ODBCParameter &pParam)
 
 
 
+void ODBCStoredProc::connectODBC()
+{
+    if (!mCon.open(mDSN.c_str(), mUser.c_str(), mPass.c_str()))
+    {
+        mCon.close();
+        mODBCConnected = false;
+    }
+    else
+        mODBCConnected = true;
+}
+
+
+
 std::string ODBCStoredProc::retrieveError(std::string fn)
 {
     SQLINTEGER i = 0;
@@ -91,7 +170,7 @@ std::string ODBCStoredProc::retrieveError(std::string fn)
     SQLRETURN ret;
     std::string error;
 
-    error = "The driver reported the following diagnostics while running(";
+    error = "The driver reported the following diagnostics while running (";
     error += fn + "): ";
 
     ret = SQL_SUCCESS;

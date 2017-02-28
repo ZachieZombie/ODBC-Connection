@@ -23,8 +23,8 @@ ODBCConnection::~ODBCConnection()
 
 
 
-bool ODBCConnection::open(char* ptrDsnStr, char* ptrUserStr,
-    char* ptrPassStr)
+bool ODBCConnection::open(const char* ptrDsnStr, const char* ptrUserStr,
+                          const char* ptrPassStr)
 {
     if (mConnectionTimeout > 0)
     {
@@ -34,8 +34,8 @@ bool ODBCConnection::open(char* ptrDsnStr, char* ptrUserStr,
     SQLSetConnectAttr(mHdbc, SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER)mLoginTimeout, 0);
 
     mRetCode = SQLConnect(mHdbc, (SQLCHAR*)ptrDsnStr, SQL_NTS,
-        (SQLCHAR*)ptrUserStr, SQL_NTS,
-        (SQLCHAR*)ptrPassStr, SQL_NTS);
+                                 (SQLCHAR*)ptrUserStr, SQL_NTS,
+                                 (SQLCHAR*)ptrPassStr, SQL_NTS);
 
     if ((mRetCode == SQL_SUCCESS) || (mRetCode == SQL_SUCCESS_WITH_INFO))
     {
@@ -43,6 +43,8 @@ bool ODBCConnection::open(char* ptrDsnStr, char* ptrUserStr,
     }
     else
     {
+        mError.clear();
+        mError = retrieveError(("Open Connection: " + std::string(ptrDsnStr)), SQL_HANDLE_DBC);
         mIsConnected = false;
     }
 
@@ -51,7 +53,7 @@ bool ODBCConnection::open(char* ptrDsnStr, char* ptrUserStr,
 
 
 bool ODBCConnection::connectDriver(char* ptrConStr, char* ptrConStrOut, HWND hWnd,
-enum driverCompletion driverCon)
+                                   enum driverCompletion driverCon)
 {
     SQLSMALLINT pcbConnStrOut;
 
@@ -68,9 +70,9 @@ enum driverCompletion driverCon)
     SQLSetConnectAttr(mHdbc, SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER)mLoginTimeout, 0);
 
     mRetCode = SQLDriverConnect(mHdbc, hWnd, (SQLCHAR*)ptrConStr, SQL_NTS,
-        (SQLCHAR*)ptrConStrOut, sizeof(ptrConStrOut),
-        &pcbConnStrOut,
-        (SQLUSMALLINT)driverCon);
+                               (SQLCHAR*)ptrConStrOut, sizeof(ptrConStrOut),
+                                &pcbConnStrOut,
+                               (SQLUSMALLINT)driverCon);
 
     if ((mRetCode == SQL_SUCCESS) || (mRetCode == SQL_SUCCESS_WITH_INFO))
     {
@@ -78,6 +80,8 @@ enum driverCompletion driverCon)
     }
     else
     {
+        mError.clear();
+        mError = retrieveError("Connect Driver", SQL_HANDLE_DBC);
         mIsConnected = false;
     }
 
@@ -116,7 +120,7 @@ void ODBCConnection::close()
 
 
 
-std::string ODBCConnection::retrieveError(std::string fn)
+std::string ODBCConnection::retrieveError(std::string pFn, SQLSMALLINT pHandleType)
 {
     SQLINTEGER i = 0;
     SQLINTEGER native;
@@ -126,14 +130,23 @@ std::string ODBCConnection::retrieveError(std::string fn)
     SQLRETURN ret;
     std::string error;
 
-    error = "The driver reported the following diagnostics while running(";
-    error += fn + "): ";
+    error = "The driver reported the following diagnostics while running (";
+    error += pFn + "): ";
 
     ret = SQL_SUCCESS;
     while (ret == SQL_SUCCESS)
     {
-        ret = SQLGetDiagRec(SQL_HANDLE_ENV, mHenv, ++i, 
-                            state, &native, text, sizeof(text), &length);
+        switch (pHandleType)
+        {
+        case SQL_HANDLE_ENV:
+            ret = SQLGetDiagRec(SQL_HANDLE_ENV, mHenv, ++i, 
+                                state, &native, text, sizeof(text), &length);
+            break;
+        case SQL_HANDLE_DBC:
+            ret = SQLGetDiagRec(SQL_HANDLE_DBC, mHdbc, ++i,
+                state, &native, text, sizeof(text), &length);
+            break;
+        }
         if (SQL_SUCCEEDED(ret))
         {
             std::string tempError;
