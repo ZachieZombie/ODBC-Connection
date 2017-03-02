@@ -28,6 +28,12 @@ ODBCStoredProc::~ODBCStoredProc()
 
 
 
+/* 
+   Initialize Connection to be used to run the stored procedure 
+       Returns true: Successful Connection
+       Returns false: Unsuccessful Connection
+   If connection fails the SQL Driver diagnostic information is retrieved
+*/
 bool ODBCStoredProc::initialize(std::string pDSN, std::string pUser, std::string pPass)
 {
     setDSN (pDSN);
@@ -37,8 +43,6 @@ bool ODBCStoredProc::initialize(std::string pDSN, std::string pUser, std::string
 
     if (!mODBCConnected)
     {
-        mError.clear();
-        mError = mCon.getLastError();
         return false;
     }
     mHdbc = mCon.mHdbc;
@@ -48,6 +52,11 @@ bool ODBCStoredProc::initialize(std::string pDSN, std::string pUser, std::string
 
 
 
+/*
+    Set Stored Procedure Call 
+        Syntax: {return = call [stored].[proc].[name] (Input/Output Variables)
+        Example: {call [dw].[dataloads].[dbo].[ustp_EmailManagement] ('Admin: Machine Status', ?, ?)}
+*/
 void ODBCStoredProc::setProcCall(std::string pCall)
 {
     mProcCall = pCall;
@@ -55,6 +64,9 @@ void ODBCStoredProc::setProcCall(std::string pCall)
 
 
 
+/*
+    Set DSN Connection Name
+*/
 void ODBCStoredProc::setDSN(std::string pDSN)
 {
     mDSN = pDSN;
@@ -62,6 +74,9 @@ void ODBCStoredProc::setDSN(std::string pDSN)
 
 
 
+/*
+    Set DSN Connection Username
+*/
 void ODBCStoredProc::setUser(std::string pUser)
 {
     mUser = pUser;
@@ -69,6 +84,9 @@ void ODBCStoredProc::setUser(std::string pUser)
 
 
 
+/*
+    Set DSN Connection Password
+*/
 void ODBCStoredProc::setPass(std::string pPass)
 {
     mPass = pPass;
@@ -76,6 +94,9 @@ void ODBCStoredProc::setPass(std::string pPass)
 
 
 
+/*
+    Allocate SQL Statement handle
+*/
 void ODBCStoredProc::allocStatement()
 {
     SQLAllocHandle(SQL_HANDLE_STMT, mHdbc, &mHstmt);
@@ -83,6 +104,15 @@ void ODBCStoredProc::allocStatement()
 
 
 
+/* runProcedure(std::string)
+    Run Stored Procedure Call
+        Syntax: {return = call [stored].[proc].[name] (Input/Output Variables)
+            Return value from stored procedure needs to be an int
+            Input/Output variables can be hard coded (input) or bound params (in/out)
+        Example: {call [dw].[dataloads].[dbo].[ustp_EmailManagement] ('Admin: Machine Status', ?, ?)}
+            In the example call "'Admin: Machine Status'" is a hard coded string input parameter and
+            the two ? marks are bound parameters.
+*/
 bool ODBCStoredProc::runProcedure(std::string ptrSqlStr)
 {
     retCode = SQLExecDirect(mHstmt, (SQLCHAR*)ptrSqlStr.c_str(), SQL_NTS);
@@ -99,6 +129,10 @@ bool ODBCStoredProc::runProcedure(std::string ptrSqlStr)
 
 
 
+/* runProcedure()
+    Default Run Stored Procedure Call. 
+        Uses procedure call set by the setProcCall function.
+*/
 bool ODBCStoredProc::runProcedure()
 {
     retCode = SQLExecDirect(mHstmt, (SQLCHAR*)mProcCall.c_str(), SQL_NTS);
@@ -125,6 +159,12 @@ void ODBCStoredProc::close()
 
 
 
+/* bindParameter(unsigned int, ODBCParameter)
+    Bind parameter to SQL statement handle
+        Returns true: successfully bound parameter to statement
+        Returns false: bind was not successful
+    If returning false diagnostic information is retrieved from the SQL driver
+*/
 bool ODBCStoredProc::bindParameter(unsigned int pIndex, ODBCParameter &pParam)
 {
     retCode = SQLBindParameter(mHstmt,
@@ -142,8 +182,14 @@ bool ODBCStoredProc::bindParameter(unsigned int pIndex, ODBCParameter &pParam)
     {
         return true;
     }
-    return false;
+    else
+    {
+        mError.clear();
+        mError = retrieveError("Bind Parameter");
+        return false;
+    }
 }
+
 
 
 
@@ -151,6 +197,8 @@ void ODBCStoredProc::connectODBC()
 {
     if (!mCon.open(mDSN.c_str(), mUser.c_str(), mPass.c_str()))
     {
+        mError.clear();
+        mError = mCon.getLastError();
         mCon.close();
         mODBCConnected = false;
     }

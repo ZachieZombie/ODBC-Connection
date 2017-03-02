@@ -18,14 +18,12 @@ public:
     bool runProcedure();
 
     bool bindParameter(unsigned int pIndex, ODBCParameter &pParam);
+
     void close();
-
-
     void setProcCall(std::string pCall);
     void setDSN     (std::string pDSN);
     void setUser    (std::string pUser);
     void setPass    (std::string pPass);
-
 
     std::string retrieveError(std::string fn);
     std::string getLastError() { return mError; }

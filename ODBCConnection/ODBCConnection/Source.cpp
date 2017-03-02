@@ -5,6 +5,7 @@
 #include "ODBCRecordset.h"
 #include "ODBCParameter.h"
 #include "ODBCStoredProc.h"
+#include "MailingList.h"
 
 int main(int argc, char* argv[])
 {
@@ -24,7 +25,6 @@ int main(int argc, char* argv[])
         return -1;
     }
     spa.setProcCall("{call [dw].[dataloads].[dbo].[ustp_EmailManagement] ('Admin: Machine Status', ?, ?)}");
-
     ODBCParameter ToList;
     ODBCParameter CCList;
     SQLCHAR ToBuffer[1000];
@@ -37,23 +37,28 @@ int main(int argc, char* argv[])
 
 
     //ODBCStoredProc spb = ODBCStoredProc(&con);
-
     ODBCStoredProc spb;
     if (!spb.initialize("DEVMASSETS", "", ""))
     {
         std::string error = spb.getLastError();
         return -2;
     }
-    ODBCParameter equity;
+    ODBCParameter eq;
     ODBCParameter id;
     SQLDOUBLE eBuffer = 0;
     int idBuffer = 57;
-    equity.initialize(&eBuffer, sizeof(eBuffer), "Output", DBC_DOUBLE);
+    eq.initialize(&eBuffer,  sizeof(eBuffer), "Output", DBC_DOUBLE);
     id.initialize(&idBuffer, sizeof(idBuffer), "Input", DBC_INTEGER);
     spb.bindParameter(1, id);
-    spb.bindParameter(2, equity);
+    spb.bindParameter(2, eq);
     spb.runProcedure("{call [massets].[dbo].[ustp_ISEquityPercent] (?,?)}");
 
+    MailingList list;
+    std::string To;
+    std::string CC;
+    std::string MLError = list.getLists("Admin: Machine Status", To, CC);
+
+    return 0;
     //ODBCRecordset records = ODBCRecordset(&con);
     //SQLCHAR ToList [1000];
     //SQLLEN cbToList = sizeof(ToList);
@@ -126,7 +131,4 @@ int main(int argc, char* argv[])
 
     //    records.moveNext();
     //}
-
-
-    return 0;
 }

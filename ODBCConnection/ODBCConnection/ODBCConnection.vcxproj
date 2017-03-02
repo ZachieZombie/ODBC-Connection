@@ -79,6 +79,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MailingList.h" />
     <ClInclude Include="ODBCConnection.h" />
     <ClInclude Include="ODBCParameter.h" />
     <ClInclude Include="ODBCRecordset.h" />
@@ -86,6 +87,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MailingList.cpp" />
     <ClCompile Include="ODBCConnection.cpp" />
     <ClCompile Include="ODBCParameter.cpp" />
     <ClCompile Include="ODBCRecordset.cpp" />
